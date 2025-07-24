@@ -21,3 +21,4 @@ JWT_SECRET=your_jwt_secret
 
 3. Install Frontend Dependencies
 4. npm install
+5. 
