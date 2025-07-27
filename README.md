@@ -11,13 +11,8 @@ Create a .env file:
 touch .env
 
 Add your environment variables
-
-PORT=5000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=yourpassword
-DB_NAME=Clothing_Store_DB
-JWT_SECRET=your_jwt_secret
+Frontend: .env
+VITE_API_URL=http://localhost:5000/api
 
 3. Install Frontend Dependencies
 npm install
