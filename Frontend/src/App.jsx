@@ -11,6 +11,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProductDashboard from "./pages/admin/AdminProductDashboard";
 import AdminCreateProduct from "./pages/admin/AdminCreateProduct";
 import AdminEditProduct from "./pages/admin/AdminEditProduct.jsx";
+import AdminOrderConfirmation from "./pages/admin/AdminOrderConfirmation";
+import Checkout from "./components/Checkout";
+import OrderConfirmation from "./components/OrderConfirmation";
 
 function AdminRoute() {
   try {
@@ -34,6 +37,8 @@ function App() {
           <Route path="/AllProducts" element={<AllProducts />} />
           <Route path="/Cart" element={<Cart />} />
           <Route path="/Favorites" element={<Favorites />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/products" element={<AdminProductDashboard />} />
@@ -41,6 +46,7 @@ function App() {
             <Route path="/admin/products/edit/:id" element={<AdminEditProduct />} />
             <Route path="/admin/users" element={<div>Manage Users (Placeholder)</div>} />
             <Route path="/admin/orders" element={<div>View Orders (Placeholder)</div>} />
+            <Route path="/admin/order-confirmation/:orderId" element={<AdminOrderConfirmation />} />
           </Route>
         </Route>
       </Routes>

@@ -9,8 +9,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) {
-        setError("No user data found. Please log in.");
+      if (!user || user.role !== "admin") {
+        setError("Unauthorized access. Please log in as an admin.");
         navigate("/login", { replace: true });
       } else {
         setAdminName(user.full_name || user.email || "Admin");
@@ -60,9 +60,7 @@ export default function AdminDashboard() {
           aria-label="Manage Products"
         >
           <h2 className="text-xl font-semibold">🛍 Manage Products</h2>
-          <p className="text-gray-500 text-sm mt-2">
-            View, edit, and delete products.
-          </p>
+          <p className="text-gray-500 text-sm mt-2">View, edit, and delete products.</p>
         </button>
         <button
           onClick={() => navigate("/admin/users")}
@@ -70,9 +68,7 @@ export default function AdminDashboard() {
           aria-label="Manage Users"
         >
           <h2 className="text-xl font-semibold">👥 Manage Users</h2>
-          <p className="text-gray-500 text-sm mt-2">
-            Assign roles and monitor users.
-          </p>
+          <p className="text-gray-500 text-sm mt-2">Assign roles and monitor users.</p>
         </button>
         <button
           onClick={() => navigate("/admin/orders")}
@@ -80,9 +76,15 @@ export default function AdminDashboard() {
           aria-label="View Orders"
         >
           <h2 className="text-xl font-semibold">📦 View Orders</h2>
-          <p className="text-gray-500 text-sm mt-2">
-            Track customer orders and delivery.
-          </p>
+          <p className="text-gray-500 text-sm mt-2">Track customer orders and delivery.</p>
+        </button>
+        <button
+          onClick={() => navigate("/admin/order-confirmation/1")} // Test with orderId 1
+          className="bg-white p-6 rounded-lg shadow cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
+          aria-label="View Order Confirmations"
+        >
+          <h2 className="text-xl font-semibold">✅ Order Confirmations</h2>
+          <p className="text-gray-500 text-sm mt-2">Review completed orders.</p>
         </button>
       </div>
 

@@ -1,23 +1,22 @@
 import { useCart } from "../context/CartContext";
+import { useNavigate } from 'react-router-dom';
 
 export default function Cart() {
   const { cartItems, removeFromCart, setCartItems } = useCart();
+  const navigate = useNavigate();
 
   const updateQuantity = (variant_id, delta) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        item.variant.variant_id === variant_id
-          ? {
-              ...item,
-              quantity: Math.max(1, item.quantity + delta),
-            }
+        item.variant?.variant_id === variant_id
+          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item
       )
     );
   };
 
   const total = cartItems.reduce(
-    (sum, item) => sum + item.variant.price * item.quantity,
+    (sum, item) => sum + (item.variant?.price || 0) * item.quantity,
     0
   );
 
@@ -39,45 +38,47 @@ export default function Cart() {
                   className="flex items-center gap-4 border rounded p-4 shadow"
                 >
                   <img
-                    src={item.product.image_url || "/placeholder.jpg"}
-                    alt={item.product.product_name}
+                    src={item.product?.image_url || "/placeholder.jpg"}
+                    alt={item.product?.product_name || "Product"}
                     className="w-24 h-24 object-cover rounded"
                   />
 
                   <div className="flex-1">
                     <h4 className="text-lg font-semibold">
-                      {item.product.product_name}
+                      {item.product?.product_name || "Unnamed Product"}
                     </h4>
                     <p className="text-gray-600 text-sm">
-                      Size: {item.variant.size} | Color: {item.variant.color}
+                      Size: {item.variant?.size || "N/A"} | Color: {item.variant?.color || "N/A"}
                     </p>
 
-                    {/* Quantity Controls */}
                     <div className="flex items-center gap-2 mt-2">
                       <button
-                        onClick={() => updateQuantity(item.variant.variant_id, -1)}
+                        onClick={() => updateQuantity(item.variant?.variant_id, -1)}
                         className="w-8 h-8 border rounded text-lg font-semibold"
+                        disabled={!item.variant?.variant_id}
                       >
                         −
                       </button>
                       <span>{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.variant.variant_id, 1)}
+                        onClick={() => updateQuantity(item.variant?.variant_id, 1)}
                         className="w-8 h-8 border rounded text-lg font-semibold"
+                        disabled={!item.variant?.variant_id}
                       >
                         +
                       </button>
                     </div>
 
                     <p className="text-black font-semibold mt-1">
-                      ${item.variant.price} × {item.quantity} = $
-                      {(item.variant.price * item.quantity).toFixed(2)}
+                      ${(item.variant?.price || 0) * item.quantity} = $
+                      {(item.variant?.price || 0) * item.quantity}
                     </p>
                   </div>
 
                   <button
-                    onClick={() => removeFromCart(item.variant.variant_id)}
+                    onClick={() => removeFromCart(item.variant?.variant_id)}
                     className="text-red-600 hover:underline text-sm"
+                    disabled={!item.variant?.variant_id}
                   >
                     Remove
                   </button>
@@ -89,7 +90,11 @@ export default function Cart() {
               <p className="text-xl font-semibold mb-4">
                 Total: ${total.toFixed(2)}
               </p>
-              <button className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">
+              <button
+                onClick={() => navigate('/checkout')}
+                className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
+                disabled={cartItems.length === 0}
+              >
                 Proceed to Checkout
               </button>
             </div>
