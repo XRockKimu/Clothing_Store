@@ -2,10 +2,10 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../models/index.js';
 
-const authController = {
-  async login(req) {
-    const { email, password } = req.body;
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
+  try {
     let user = await db.Customer.findOne({ where: { email } });
     let role = 'user';
     let idField = 'customer_id';
@@ -19,12 +19,12 @@ const authController = {
     }
 
     if (!user) {
-      throw new Error('Invalid email');
+      return res.status(400).json({ message: 'Invalid email' });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) {
-      throw new Error('Incorrect password');
+      return res.status(400).json({ message: 'Incorrect password' });
     }
 
     const token = jwt.sign(
@@ -33,7 +33,7 @@ const authController = {
       { expiresIn: '1d' }
     );
 
-    return {
+    res.json({
       token,
       user: {
         id: user[idField],
@@ -41,15 +41,21 @@ const authController = {
         role,
         full_name: user[fullNameField],
       },
-    };
-  },
+      message: 'Login successful',
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+};
 
-  async register(req) {
-    const { full_name, email, password, gender, phone, address } = req.body;
+export const registerUser = async (req, res) => {
+  const { full_name, email, password, gender, phone, address } = req.body;
 
+  try {
     const existing = await db.Customer.findOne({ where: { email } });
     if (existing) {
-      throw new Error('Email already in use');
+      return res.status(400).json({ message: 'Email already in use' });
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -69,7 +75,7 @@ const authController = {
       { expiresIn: '1d' }
     );
 
-    return {
+    res.status(201).json({
       token,
       user: {
         id: newUser.customer_id,
@@ -77,8 +83,10 @@ const authController = {
         role: 'user',
         full_name: newUser.full_name,
       },
-    };
-  },
+      message: 'Registration successful',
+    });
+  } catch (err) {
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
 };
-
-export default authController;

@@ -1,10 +1,10 @@
 import express from 'express';
 import checkoutController from '../controllers/checkoutController.js';
-import authMiddleware from '../authMiddleware.js';
+import verifyToken from '../middleware/verifyToken.js';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const result = await checkoutController.processCheckout(req);
     res.status(200).json({ success: true, orderId: result.orderId });
