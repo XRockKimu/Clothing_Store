@@ -7,6 +7,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [error, setError] = useState('');
+
   const total = cartItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
 
   const handleCheckout = async () => {
@@ -15,18 +16,29 @@ export default function Checkout() {
       return;
     }
 
+    const token = localStorage.getItem('token'); // ✅ retrieve JWT
+
+    if (!token) {
+      setError('Please log in to complete checkout.');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5000/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // ✅ send JWT
+        },
         body: JSON.stringify({ items: cartItems, paymentMethod }),
       });
 
-      if (!response.ok) throw new Error('Checkout failed');
-
       const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message || 'Checkout failed');
+
       clearCart();
-      navigate(`/order-confirmation/${result.orderId}`); // User confirmation route
+      navigate(`/order-confirmation/${result.orderId}`);
     } catch (err) {
       setError(err.message);
     }
@@ -86,7 +98,12 @@ export default function Checkout() {
             </div>
           </>
         ) : (
-          <p className="text-center">Your cart is empty. <button onClick={() => navigate('/Cart')} className="text-blue-600 underline">Go to Cart</button></p>
+          <p className="text-center">
+            Your cart is empty.{' '}
+            <button onClick={() => navigate('/Cart')} className="text-blue-600 underline">
+              Go to Cart
+            </button>
+          </p>
         )}
       </div>
     </div>

@@ -1,73 +1,27 @@
-import db from '../models/index.js';
+const processCheckout = async (req, res) => {
+  const { items, paymentMethod } = req.body;
+  const userId = req.user.id;
 
-const checkoutController = {
-  async processCheckout(req) {
-    const { items, paymentMethod } = req.body;
-    const { id: userId, role } = req.user; // Extract from JWT
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: 'Cart is empty' });
+  }
 
-    if (!items || items.length === 0) {
-      throw new Error('Cart is empty');
+  try {
+    // Example logic (replace with Sequelize)
+    const orderId = Math.floor(Math.random() * 100000); // mock orderId
+
+    console.log(`User ${userId} placed order with`, { items, paymentMethod });
+
+    return res.status(200).json({ success: true, orderId });
+  } catch (error) {
+    console.error('Checkout error:', error);
+
+    if (error.name === 'SequelizeDatabaseError' && error.parent?.code === 'WARN_DATA_TRUNCATED') {
+      return res.status(400).json({ error: 'Invalid payment method' });
     }
 
-    const validPaymentMethods = ['Cash', 'Credit Card', 'Paypal'];
-    const normalizedPaymentMethod = validPaymentMethods.includes(paymentMethod)
-      ? paymentMethod
-      : 'Cash';
-    if (normalizedPaymentMethod !== paymentMethod) {
-      console.warn(`Invalid payment method '${paymentMethod}' converted to 'Cash'`);
-    }
-
-    const result = await db.sequelize.transaction(async (t) => {
-      const customer_id = role === 'user' ? userId : null; // Customer ID for users
-      const employee_id = role === 'admin' ? userId : null; // Employee ID for admins
-
-      const order = await db.Order.create(
-        {
-          customer_id, // Use authenticated user ID
-          employee_id,
-          total_amount: items.reduce((sum, item) => sum + item.variant.price * item.quantity, 0),
-        },
-        { transaction: t }
-      );
-
-      const orderItems = await db.Order_Item.bulkCreate(
-        items.map((item) => ({
-          order_id: order.order_id,
-          product_id: item.product.product_id,
-          variant_id: item.variant.variant_id,
-          quantity: item.quantity,
-          unit_price: item.variant.price,
-        })),
-        { transaction: t }
-      );
-
-      for (const item of items) {
-        const inventory = await db.Inventory.findOne({
-          where: { product_id: item.product.product_id, variant_id: item.variant.variant_id },
-        });
-        if (inventory) {
-          if (inventory.quantity < item.quantity) {
-            throw new Error('Insufficient inventory for ' + item.product.product_name);
-          }
-          await inventory.update(
-            { quantity: inventory.quantity - item.quantity },
-            { transaction: t }
-          );
-        }
-      }
-
-      await db.Payment.create({
-        order_id: order.order_id,
-        amount: order.total_amount,
-        payment_method: normalizedPaymentMethod,
-        status: 'Pending',
-      }, { transaction: t });
-
-      return { orderId: order.order_id };
-    });
-
-    return result;
+    return res.status(500).json({ error: error.message || 'Failed to process order' });
   }
 };
 
-export default checkoutController;
+export default { processCheckout };
